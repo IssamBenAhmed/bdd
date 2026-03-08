@@ -1,1 +1,299 @@
--- Pour ce TP, nous travaillerons sous PostgreSQL./* *********************************        Niveau débutant :************************************ */-- Sélection, projection, tri-- 1-Donner les références des produits.SELECT REF_PRODUIT REF FROM PRODUITS;-- 59 lignes-- 2-Donner le code et la société des clients.SELECT CODE_CLIENT, SOCIETEFROM CLIENTS;-- 38 lignes-- 3-Donner le code des clients qui ont commandé des produits.SELECT DISTINCT CODE_CLIENTFROM COMMANDES;-- 37 lignes	-- 4-Donner la référence des produits de la commande n°10254.SELECT REF_PRODUITFROM DETAIL_COMMANDESWHERE NO_COMMANDE=10254;-- 1 ligne : 74-- 5-Donner le nom et la catégorie des sociétés lyonnaises ou nantaises (Nantes) de catégorie supérieure ou égale à 2. Triez-les par catégorie.SELECT SOCIETE, CATEGORIEFROM CLIENTSWHERE CLIENTS.VILLE='Lyon' OR CLIENTS.VILLE='Nantes' AND CATEGORIE >= 2ORDER BY CATEGORIE;-- 3 lignes-- 6-Donner la liste des produits triée par prix décroissant puis par nom croissant.SELECT NOM_PRODUITFROM PRODUITSORDER BY PRIX_UNITAIRE DESC, NOM_PRODUIT;-- 59 lignes-- 7-Afficher les informations des sociétés dont le nom commence par C.SELECT *FROM CLIENTSWHERE SOCIETE LIKE 'C%';-- 3 lignes-- Opérateurs ensemblistes-- 8-Donner la référence des produits dont le nom contient 'Sauce'-- ou qui ont été commandé avec une quantité comprise entre 50 et 60-- (bornes non incluses).-- (union)SELECT REF_PRODUIT FROM PRODUITSWHERE NOM_PRODUIT LIKE '%Sauce%'UNIONSELECT REF_PRODUITFROM DETAILS_COMMANDESWHERE QUANTITE > 50 AND QUANTITE < 60;-- 3 lignes-- 9-Donner le code des clients qui n'ont pas commandé. 	-- (différence ou NOT IN)SELECT CODE_CLIENT FROM CLIENTSWHERE CODE_CLIENT NOT IN (SELECT CODE_CLIENT							FROM COMMANDES);-- 1 ligne : FISSA-- Dépend du SGBD (EXCEPT) :-- 10-Donner le numéro des commandes du 2009-10-29 et qui ont commandé le produit 21. -- (intersection ou IN)SELECT NO_COMMANDEFROM COMMANDESWHERE DATE_COMMANDE='2009-10-29' AND NO_COMMANDE IN (SELECT NO_COMMANDE 										FROM DETAILS_COMMANDES										WHERE REF_PRODUIT = 21);-- 2 lignes-- Jointures :-- 11-Donner pour chaque commande, son numéro, sa date ainsi que la société, le pays et la catégorie du client. SELECT NO_COMMANDE ,DATE_COMMANDE, SOCIETE, PAYS, CATEGORIEFROM CLIENTS CLJOIN COMMANDES COON CL.CODE_CLIENT=CO.CODE_CLIENT;-- 339 lignes-- 12-Donner la date, le code, la société, le pays et la catégorie du client de la commande n°10258.SELECT DATE_COMMANDE, SOCIETE ,PAYS,CATEGORIE , CO.CODE_CLIENTFROM COMMANDES COJOIN CLIENTS CL ON CO.CODE_CLIENT= CL.CODE_CLIENTWHERE NO_COMMANDE = 10258;-- 1 ligne-- 13-Donner la référence, le prix unitaire, la quantité et le montant total (prix*quantité) des produits de la commande n°10258. SELECT D.REF_PRODUIT, D.QUANTITE, P.PRIX_UNITAIRE, P.PRIX_UNITAIRE*D.QUANTITE MONTANT_TOTALFROM PRODUITS PJOIN DETAILS_COMMANDES DON D.REF_PRODUIT=P.REF_PRODUITWHERE D.NO_COMMANDE=10258;-- 3 lignes-- 14-Donner les références des produits commandés par des sociétés suisses.SELECT DISTINCT REF_PRODUITFROM DETAILS_COMMANDES DJOIN COMMANDES CO ON D.NO_COMMANDE=CO.NO_COMMANDEJOIN CLIENTS CLON CO.CODE_CLIENT=CL.CODE_CLIENT WHERE CL.PAYS='Suisse';-- 12 lignes-- Agrégations-- 15-Donner le nombre de clients français.SELECT COUNT(*)FROM CLIENTSWHERE PAYS='France';-- 1 ligne : 7-- 16-Donner le nombre de clients qui ont commandé des produits.SELECT COUNT(DISTINCT CODE_CLIENT)FROM COMMANDES;-- 1 ligne : 37-- 17-Donner le prix moyen des produits.SELECT AVG(PRIX_UNITAIRE)FROM PRODUITS;-- 1 ligne : 129.88/* *********************************        Niveau intermédiaire :************************************ */-- 18-Donner les pays dans lesquels se trouvent des clients de catégorie 1 ou 2.-- Trier-les par ordre alphabétique.SELECT DISTINCT PAYSFROM CLIENTSWHERE CATEGORIE=2 OR CATEGORIE =1ORDER BY PAYS;-- 11 lignes-- 19-Donner le numéro des commandes contenant les produits 30 ou 74.SELECT DISTINCT NO_COMMANDEFROM DETAILS_COMMANDESWHERE REF_PRODUIT=30 OR REF_PRODUIT=74;-- 13 lignes-- 20-Donner le numéro des commandes contenant les produits 30 et 74.SELECT DISTINCT NO_COMMANDEFROM DETAILS_COMMANDESWHERE REF_PRODUIT=30INTERSECTSELECT DISTINCT NO_COMMANDEFROM DETAILS_COMMANDESWHERE REF_PRODUIT=74;-- 1 ligne : 10263-- 21-Donner le code des clients espagnols qui n'ont pas commandé.-- Donner 3 écritures.SELECT CODE_CLIENTFROM CLIENTSWHERE PAYS='Espagne' AND CODE_CLIENT NOT IN(SELECT CODE_CLIENT FROM COMMANDES);SELECT DISTINCT CO.CODE_CLIENTFROM CLIENTS CLJOIN COMMANDES COON CL.CODE_CLIENT!=CO.CODE_CLIENTWHERE CL.PAYS='Espagne';SELECT DISTINCT CODE_CLIENTFROM CLIENTSWHERE PAYS='Espagne'EXCEPTSELECT DISTINCT CODE_CLIENTFROM COMMANDES;-- 1 ligne : FISSA-- 22-Donner le numéro des commandes de aout 2008 des clients-- habitant au Royaume-Uni ou à Toulouse.-- Afficher le jour de la commande.-- Utiliser TO_CHAR()-- 3 lignes-- 23-Donner le code et le pays des clients ayant commandé le produit n°31.-- Afficher le pays sous cette forme : Aut. (3 premières lettres + point).-- 14 lignes-- 24-Donner le code et la société des clients de catégorie 1 avec le numéro de leurs commandes-- (on veut afficher tous les clients même ceux qui n'ont pas encore de commande).-- Trier les lignes par société puis par numéro de commande décroissant.-- 97 lignes-- 25-Donner la référence des produits qui coûtent plus de 300€ ou qui ont été commandés par 50.-- (union ou jointure)-- 17 lignes-- 26-Donner la référence des produits qui coûtent plus de 300€ et qui ont été commandés par 50.-- (intersection ou jointure)-- 2 lignes-- 27-Donner le numéro et le nom des produits qui n'ont pas été commandés.-- (plusieurs solutions dont anti-jointure)-- 1 ligne : 18-- 28-Donner le numéro et la date des commandes contenant les produits 30 et 74.-- 1 ligne : 10263-- 29-Donner les sociétés dont le pays est le même que celui du client FRANS (FRANS est un CODE_CLIENT).-- 2 lignes-- 30-Donner les produits dont le prix est supérieur au prix moyen des produits.-- 21 lignes-- 31-Donner le nombre de clients qui ont commandé le produit n° 31.-- 1 ligne : 14-- 32-Donner la référence et le nom du ou des produits les plus chers.-- 1 ligne : 9-- 33-Donner le nombre de clients de catégorie 0 ou 1 par pays (sauf la France).-- Trier par nombre décroissant.-- 9 lignes-- 34-Donner le nombre de clients par pays et par catégorie.-- Trier par pays, catégorie.-- 24 lignes-- 35-Donner les pays ayant des sociétés d'au moins 2 catégories différentes.-- 6 lignes-- 36-Donner le nombre de produits total (en fonction de la quantité)-- par commande (uniquement si au moins 4 références différentes).-- 21 lignes-- 37-Donner le numéro des commandes dont le montant est supérieur à 20000-- (afficher le montant total de la facture).-- Vérifier le résultat pour une facture.-- 9 lignes-- 38-Donner le numéro et la date des commandes avec au moins 4 références différentes.-- 21 lignes/* *********************************        Niveau avancé :************************************ */-- 39-Donner les produits commandés en même quantité dans une même commande-- (uniquement si la quantité est supérieure à 45).-- On veut le numéro de commande, la quantité et les 2 références.-- 4 lignes-- 40-Donner pour chaque produit, les produits qui coutent 10€ de plus.-- Afficher les références et les prix des produits.-- Trier par produit.-- 30 lignes-- 41-Requête 21 avec un NOT EXISTS.-- Forme : SELECT ... FROM ... WHERE EXISTS / NOT EXISTS (SELECT * FROM ... WHERE ...)-- Il y a toujours un lien entre les deux sous-requêtes (grâce à la notation pointée).-- 1 ligne : FISSA-- 42-Donner le numéro des commandes contenant tous les produits.-- Aide : Compter le nombre de produits contenus dans chaque commande.-- Aucune ligne-- 43-Donner le numéro des commandes contenant tous les produits qui coutent 105€.-- Aide : Bien compter uniquement les produits qui coutent 105€.-- 1 ligne : 10698-- 44-Donner la référence des produits qui sont dans toutes les commandes de FRANR.-- 1 ligne : 62-- 45-Donner la référence du produit qui a été le plus commandé (en fonction de la quantité).-- Aide : Commencer par donner la quantité commandée pour chaque produit puis trouver la quantité max.-- (sans utiliser LIMIT)-- 1 ligne : 31-- 46-Donner le numéro des commandes de 2010 (avec le code des clients) contenant tous les produits les plus chers.-- 1 ligne : 10848
+-- Pour ce TP, nous travaillerons sous PostgreSQL.
+
+/* *********************************
+        Niveau débutant :
+************************************ */
+
+-- Sélection, projection, tri
+-- 1-Donner les références des produits.
+SELECT REF_PRODUIT REF 
+FROM PRODUITS;
+
+-- 59 lignes
+
+-- 2-Donner le code et la société des clients.
+SELECT CODE_CLIENT, SOCIETE
+FROM CLIENTS;
+
+-- 38 lignes
+
+-- 3-Donner le code des clients qui ont commandé des produits.
+SELECT DISTINCT CODE_CLIENT
+FROM COMMANDES;
+
+-- 37 lignes
+	
+-- 4-Donner la référence des produits de la commande n°10254.
+SELECT REF_PRODUIT
+FROM DETAIL_COMMANDES
+WHERE NO_COMMANDE=10254;
+-- 1 ligne : 74
+
+-- 5-Donner le nom et la catégorie des sociétés lyonnaises ou nantaises (Nantes) de catégorie supérieure ou égale à 2. Triez-les par catégorie.
+SELECT SOCIETE, CATEGORIE
+FROM CLIENTS
+WHERE CLIENTS.VILLE='Lyon' OR CLIENTS.VILLE='Nantes' AND CATEGORIE >= 2
+ORDER BY CATEGORIE;
+-- 3 lignes
+
+-- 6-Donner la liste des produits triée par prix décroissant puis par nom croissant.
+SELECT NOM_PRODUIT
+FROM PRODUITS
+ORDER BY PRIX_UNITAIRE DESC, NOM_PRODUIT;
+-- 59 lignes
+
+-- 7-Afficher les informations des sociétés dont le nom commence par C.
+SELECT *
+FROM CLIENTS
+WHERE SOCIETE LIKE 'C%';
+-- 3 lignes
+
+-- Opérateurs ensemblistes
+-- 8-Donner la référence des produits dont le nom contient 'Sauce'
+-- ou qui ont été commandé avec une quantité comprise entre 50 et 60
+-- (bornes non incluses).
+-- (union)
+SELECT REF_PRODUIT 
+FROM PRODUITS
+WHERE NOM_PRODUIT LIKE '%Sauce%'
+
+UNION
+
+SELECT REF_PRODUIT
+FROM DETAILS_COMMANDES
+WHERE QUANTITE > 50 AND QUANTITE < 60;
+-- 3 lignes
+
+-- 9-Donner le code des clients qui n'ont pas commandé. 	
+-- (différence ou NOT IN)
+SELECT CODE_CLIENT 
+FROM CLIENTS
+WHERE CODE_CLIENT NOT IN (SELECT CODE_CLIENT
+							FROM COMMANDES);
+-- 1 ligne : FISSA
+-- Dépend du SGBD (EXCEPT) :
+
+-- 10-Donner le numéro des commandes du 2009-10-29 et qui ont commandé le produit 21. 
+-- (intersection ou IN)
+SELECT NO_COMMANDE
+FROM COMMANDES
+WHERE DATE_COMMANDE='2009-10-29' AND NO_COMMANDE IN (SELECT NO_COMMANDE 
+										FROM DETAILS_COMMANDES
+										WHERE REF_PRODUIT = 21);
+-- 2 lignes
+
+-- Jointures :
+-- 11-Donner pour chaque commande, son numéro, sa date ainsi que la société, le pays et la catégorie du client. 
+SELECT NO_COMMANDE ,DATE_COMMANDE, SOCIETE, PAYS, CATEGORIE
+FROM CLIENTS CL
+JOIN COMMANDES CO
+ON CL.CODE_CLIENT=CO.CODE_CLIENT;
+-- 339 lignes
+
+-- 12-Donner la date, le code, la société, le pays et la catégorie du client de la commande n°10258.
+SELECT DATE_COMMANDE, SOCIETE ,PAYS,CATEGORIE , CO.CODE_CLIENT
+FROM COMMANDES CO
+JOIN CLIENTS CL ON CO.CODE_CLIENT= CL.CODE_CLIENT
+WHERE NO_COMMANDE = 10258;
+-- 1 ligne
+
+-- 13-Donner la référence, le prix unitaire, la quantité et le montant total (prix*quantité) des produits de la commande n°10258. 
+SELECT D.REF_PRODUIT, D.QUANTITE, P.PRIX_UNITAIRE, P.PRIX_UNITAIRE*D.QUANTITE MONTANT_TOTAL
+FROM PRODUITS P
+JOIN DETAILS_COMMANDES D
+ON D.REF_PRODUIT=P.REF_PRODUIT
+WHERE D.NO_COMMANDE=10258;
+-- 3 lignes
+
+-- 14-Donner les références des produits commandés par des sociétés suisses.
+SELECT DISTINCT REF_PRODUIT
+FROM DETAILS_COMMANDES D
+JOIN COMMANDES CO 
+ON D.NO_COMMANDE=CO.NO_COMMANDE
+JOIN CLIENTS CL
+ON CO.CODE_CLIENT=CL.CODE_CLIENT 
+WHERE CL.PAYS='Suisse';
+-- 12 lignes
+
+-- Agrégations
+-- 15-Donner le nombre de clients français.
+SELECT COUNT(*)
+FROM CLIENTS
+WHERE PAYS='France';
+-- 1 ligne : 7
+
+-- 16-Donner le nombre de clients qui ont commandé des produits.
+SELECT COUNT(DISTINCT CODE_CLIENT)
+FROM COMMANDES;
+-- 1 ligne : 37
+
+-- 17-Donner le prix moyen des produits.
+SELECT AVG(PRIX_UNITAIRE)
+FROM PRODUITS;
+
+-- 1 ligne : 129.88
+
+
+
+/* *********************************
+        Niveau intermédiaire :
+************************************ */
+
+-- 18-Donner les pays dans lesquels se trouvent des clients de catégorie 1 ou 2.
+-- Trier-les par ordre alphabétique.
+SELECT DISTINCT PAYS
+FROM CLIENTS
+WHERE CATEGORIE=2 OR CATEGORIE =1
+ORDER BY PAYS;
+-- 11 lignes
+
+-- 19-Donner le numéro des commandes contenant les produits 30 ou 74.
+SELECT DISTINCT NO_COMMANDE
+FROM DETAILS_COMMANDES
+WHERE REF_PRODUIT=30 OR REF_PRODUIT=74;
+-- 13 lignes
+
+-- 20-Donner le numéro des commandes contenant les produits 30 et 74.
+SELECT DISTINCT NO_COMMANDE
+FROM DETAILS_COMMANDES
+WHERE REF_PRODUIT=30
+INTERSECT
+SELECT DISTINCT NO_COMMANDE
+FROM DETAILS_COMMANDES
+WHERE REF_PRODUIT=74;
+
+-- 1 ligne : 10263
+
+-- 21-Donner le code des clients espagnols qui n'ont pas commandé.
+-- Donner 3 écritures.
+SELECT CODE_CLIENT
+FROM CLIENTS
+WHERE PAYS='Espagne' 
+AND CODE_CLIENT NOT IN(SELECT CODE_CLIENT FROM COMMANDES);
+
+SELECT DISTINCT CL.CODE_CLIENT
+FROM CLIENTS CL
+LEFT JOIN COMMANDES CO
+ON CL.CODE_CLIENT=CO.CODE_CLIENT
+WHERE CL.PAYS='Espagne' AND CO.CODE_CLIENT IS NULL;
+
+SELECT DISTINCT CODE_CLIENT
+FROM CLIENTS
+WHERE PAYS='Espagne'
+EXCEPT
+SELECT DISTINCT CODE_CLIENT
+FROM COMMANDES;
+
+-- 1 ligne : FISSA
+
+-- 22-Donner le numéro des commandes de aout 2008 des clients
+-- habitant au Royaume-Uni ou à Toulouse.
+-- Afficher le jour de la commande.
+-- Utiliser TO_CHAR()
+SELECT DISTINCT CO.NO_COMMANDE, TO_CHAR(DATE_COMMANDE,'DD') jour_commande
+FROM COMMANDES CO
+JOIN CLIENTS CL 
+ON CO.CODE_CLIENT=CL.CODE_CLIENT
+WHERE (CL.VILLE='Toulouse' OR CL.PAYS='Royaume-Uni')
+AND CO.DATE_COMMANDE>='2008-08-1' 
+AND CO.DATE_COMMANDE<='2008-08-31';
+-- 3 lignes
+
+-- 23-Donner le code et le pays des clients ayant commandé le produit n°31.
+-- Afficher le pays sous cette forme : Aut. (3 premières lettres + point).
+-- 14 lignes
+
+-- 24-Donner le code et la société des clients de catégorie 1 avec le numéro de leurs commandes
+-- (on veut afficher tous les clients même ceux qui n'ont pas encore de commande).
+-- Trier les lignes par société puis par numéro de commande décroissant.
+-- 97 lignes
+
+-- 25-Donner la référence des produits qui coûtent plus de 300€ ou qui ont été commandés par 50.
+-- (union ou jointure)
+-- 17 lignes
+
+-- 26-Donner la référence des produits qui coûtent plus de 300€ et qui ont été commandés par 50.
+-- (intersection ou jointure)
+-- 2 lignes
+
+-- 27-Donner le numéro et le nom des produits qui n'ont pas été commandés.
+-- (plusieurs solutions dont anti-jointure)
+-- 1 ligne : 18
+
+-- 28-Donner le numéro et la date des commandes contenant les produits 30 et 74.
+-- 1 ligne : 10263
+
+-- 29-Donner les sociétés dont le pays est le même que celui du client FRANS (FRANS est un CODE_CLIENT).
+-- 2 lignes
+
+-- 30-Donner les produits dont le prix est supérieur au prix moyen des produits.
+-- 21 lignes
+
+-- 31-Donner le nombre de clients qui ont commandé le produit n° 31.
+-- 1 ligne : 14
+
+-- 32-Donner la référence et le nom du ou des produits les plus chers.
+-- 1 ligne : 9
+
+-- 33-Donner le nombre de clients de catégorie 0 ou 1 par pays (sauf la France).
+-- Trier par nombre décroissant.
+-- 9 lignes
+
+-- 34-Donner le nombre de clients par pays et par catégorie.
+-- Trier par pays, catégorie.
+-- 24 lignes
+
+-- 35-Donner les pays ayant des sociétés d'au moins 2 catégories différentes.
+-- 6 lignes
+
+-- 36-Donner le nombre de produits total (en fonction de la quantité)
+-- par commande (uniquement si au moins 4 références différentes).
+-- 21 lignes
+
+-- 37-Donner le numéro des commandes dont le montant est supérieur à 20000
+-- (afficher le montant total de la facture).
+-- Vérifier le résultat pour une facture.
+-- 9 lignes
+
+-- 38-Donner le numéro et la date des commandes avec au moins 4 références différentes.
+-- 21 lignes
+
+
+/* *********************************
+        Niveau avancé :
+************************************ */
+
+
+-- 39-Donner les produits commandés en même quantité dans une même commande
+-- (uniquement si la quantité est supérieure à 45).
+-- On veut le numéro de commande, la quantité et les 2 références.
+-- 4 lignes
+
+-- 40-Donner pour chaque produit, les produits qui coutent 10€ de plus.
+-- Afficher les références et les prix des produits.
+-- Trier par produit.
+-- 30 lignes
+
+-- 41-Requête 21 avec un NOT EXISTS.
+-- Forme : SELECT ... FROM ... WHERE EXISTS / NOT EXISTS (SELECT * FROM ... WHERE ...)
+-- Il y a toujours un lien entre les deux sous-requêtes (grâce à la notation pointée).
+-- 1 ligne : FISSA
+
+-- 42-Donner le numéro des commandes contenant tous les produits.
+-- Aide : Compter le nombre de produits contenus dans chaque commande.
+-- Aucune ligne
+
+-- 43-Donner le numéro des commandes contenant tous les produits qui coutent 105€.
+-- Aide : Bien compter uniquement les produits qui coutent 105€.
+-- 1 ligne : 10698
+
+-- 44-Donner la référence des produits qui sont dans toutes les commandes de FRANR.
+-- 1 ligne : 62
+
+-- 45-Donner la référence du produit qui a été le plus commandé (en fonction de la quantité).
+-- Aide : Commencer par donner la quantité commandée pour chaque produit puis trouver la quantité max.
+-- (sans utiliser LIMIT)
+-- 1 ligne : 31
+
+-- 46-Donner le numéro des commandes de 2010 (avec le code des clients) contenant tous les produits les plus chers.
+-- 1 ligne : 10848
