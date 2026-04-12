@@ -118,25 +118,61 @@ WHERE INUM = 3;
 -- Utiliser la fonction SUBSTR ou la fonction LEFT.
 
 UPDATE INSPECTEUR
-SET INOM = LEFT(INOM, 4);
+SET INOM = LEFT(INOM, 6);
+ALTER TABLE INSPECTEUR
+ALTER COLUMN INOM TYPE VARCHAR(6);
+
 
 
 
 -- Vues
 -- Q15-Créer la vue SYNTHESE19 regroupant les attributs CEPAGE, VNUM, VNOM, INOM, NOTE et TDATE pour tous les tests effectués en 2019.
--- Afficher le contenu de cette vue.
+
+CREATE VIEW SYNTHESE19 AS
+SELECT V.CEPAGE, V.VNUM, V.VNOM, I.INOM, T.NOTE, T.TDATE
+FROM VIN V
+JOIN TEST T ON V.VNUM = T.VNUM
+JOIN INSPECTEUR I ON I.INUM = T.INUM
+WHERE T.TDATE >= '2019-01-01' AND T.TDATE < '2020-01-01';
+
+SELECT * FROM SYNTHESE19;
+
+
 
 -- Q16-Donner la note moyenne de chaque vin en 2019. On précisera le nom du vin.
 
+
+
+SELECT AVG(NOTE), VNUM , VNOM
+FROM SYNTHESE19 
+GROUP BY VNUM;
+
+*
 -- Transactions
 -- Q17-Commencer une transaction avec BEGIN; (syntaxe PostgreSQL, MySQL)
 -- Insérer les trois tuples (10, Relax), (11, Pointu) et (12, Odieux) dans la table INSPECTEUR.
 -- Vérifier que tout s’est bien passé.
 -- Annuler la dernière transaction et vérifier à nouveau le contenu de la table INSPECTEUR.
 
+
+BEGIN;
+INSERT INTO INSPECTEUR(INUM, INOM) VALUES (10, 'Relax');
+INSERT INTO INSPECTEUR(INUM, INOM) VALUES (11, 'Pointu');
+INSERT INTO INSPECTEUR(INUM, INOM) VALUES (12, 'Odieux');
+
+SELECT * FROM INSPECTEUR;
+ROLLBACK;
+SELECT * FROM INSPECTEUR;
+
+
+
 -- Q18-Modifier les instructions de Q17 de manière à ce que la table INSPECTEUR
 -- contienne les inspecteurs Pointu et Relax suite à l’annulation de la dernière transaction.
 -- Vous devez conserver les 3 ordres INSERT. 
+
+
+
+
 
 -- Suppressions
 -- Q19-Supprimer la table INSPECTEUR. Que se passe-t'il ? Pourquoi ?
